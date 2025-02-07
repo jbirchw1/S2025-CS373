@@ -5,6 +5,8 @@
 #include <iterator>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
+#include <cstring>
 
 // Custom State class
 class State{
@@ -93,10 +95,77 @@ void parse(char* filename) {
     }
 }
 
+void condense(std::vector<int>& vec) {
+    std::unordered_set<int> seen;
+    std::vector<int> result;
+
+    for (int num : vec) {
+        if (seen.insert(num).second) { // Insert returns {iterator, bool}, bool is true if inserted
+            result.push_back(num);
+        }
+    }
+
+    vec = std::move(result); // Replace the original vector with the condensed one
+}
+
+std::vector<int> transition(std::vector<int> current_states, char symbol) {
+    std::vector<int> next_states;
+
+    while(!current_states.empty()) {
+        int curr = current_states.back();
+        current_states.pop_back();
+
+        auto stateIt = transitions.find(curr);
+        if (stateIt != transitions.end()) {
+            auto symbolIt = stateIt->second.find(symbol);
+            if (symbolIt != stateIt->second.end()) {
+                const std::vector<int>& nextStates = symbolIt->second;
+                for (int s : nextStates) {
+                    // std::cout << s << " "; // TODO: add to a new vector here instead
+                    next_states.push_back(s);
+                }
+                // std::cout << std::endl; 
+            }
+            // else doNothing()
+        }
+    }
+
+    return next_states;
+}
+
+std::vector<int> begin_automata(char* input) {
+    int size_of_input = std::strlen(input);
+
+    std::vector<int> accessible_states;
+    accessible_states.push_back(start_state.num);
+
+    for(int i = 0; i < size_of_input; i++) {
+        accessible_states = transition(accessible_states, input[i]);
+        condense(accessible_states);
+    }
+
+    return accessible_states;
+}
+
 int main(int argc, char *argv[]) {
+    if(argc < 3) {
+        std::cout << "Please provide the required command line input." << std::endl;
+        return 1;
+    }
+
     initialize_states();
     parse(argv[1]);
+
+    
+
     print_states(7);
     print_transitions();
+
+    std::vector<int> accessible_states = begin_automata(argv[2]);
+    for(int state : accessible_states) {
+        std::cout << state << std::endl; 
+    }
+    // TODO: Calculate accept or reject states
+
     return 0;
 }

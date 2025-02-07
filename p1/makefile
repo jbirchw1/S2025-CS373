@@ -8,7 +8,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BIN_DIR)/%.o, $(SRCS))
 
 all: $(TARGET)
 
-birchwood_p1: $(TARGET)
+# birchwood_p1: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
