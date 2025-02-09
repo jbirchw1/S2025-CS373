@@ -14,29 +14,6 @@ std::unordered_map<int, std::unordered_map<char, std::vector<int>>> transitions;
 //                  p                       x                 q 
 // e.g., transitions[4]['a'] => {6, 7, 8, ...}
 
-// for office use only
-void print_states(int index) {
-    std::cout << "Start state is " << start_state << std::endl;
-    for(int i = 0; i <= index; i++) {
-        std::cout << "State " << i << " is " << (accept_states[i] ? "" : "not ") << "an accept state" << std::endl;
-    }
-}
-
-void print_transitions() {
-    for (const auto& [state, symbol_map] : transitions) {
-        for (const auto& [symbol, next_states] : symbol_map) {
-            std::cout << "Transition: " << state << " --(" << symbol << ")--> {";
-            
-            for (size_t i = 0; i < next_states.size(); i++) {
-                std::cout << next_states[i];
-                if (i < next_states.size() - 1) std::cout << ", ";
-            }
-            
-            std::cout << "}" << std::endl;
-        }
-    }
-}
-
 /**
  * Reads states and transitions from stdin
  */
@@ -139,25 +116,44 @@ std::vector<int> begin_automata(char* input) {
     return accessible_states;
 }
 
+void print_end_status(std::vector<int> end_states) {
+    bool accept = false;
+    for(int state : end_states) {
+        if(accept_states[state]) {
+            accept = true;
+        }
+    }
+    if(accept) {
+        std::cout << "accept ";
+        for(int state : end_states) {
+            if(accept_states[state]) {
+                std::cout << state << " ";
+            }
+        }
+    } else {
+        std::cout << "reject ";
+        for(int state : end_states) {
+            std::cout << state << " ";
+        }
+    }
+    std::cout << std::endl;
+}
+
 // Driver
 int main(int argc, char *argv[]) {
     if(argc < 3) {
         std::cout << "Please provide the required command line input." << std::endl;
         return 1;
     }
-
+    
+    // get states + transition
     parse(argv[1]);
 
-    print_states(7);
-    print_transitions();
-
+    // run the automata
     std::vector<int> accessible_states = begin_automata(argv[2]);
-    // TODO: delete
-    for(int state : accessible_states) {
-        std::cout << state << std::endl; 
-    }
-    // TODO: Calculate accept or reject states
 
+    // print accept/reject
+    print_end_status(accessible_states);
 
     return 0;
 }
