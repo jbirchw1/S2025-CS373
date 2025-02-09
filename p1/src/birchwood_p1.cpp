@@ -8,37 +8,17 @@
 #include <unordered_set>
 #include <cstring>
 
-// Custom State class
-class State{
-    public:
-        State() { // default constructor (required for making an array)
-            num = 0;
-            is_accept = false;
-        }
-        State(int x) { // constructor with number
-            num = x;
-        }
-        int num;
-        bool is_accept;
-};
-
-std::unordered_map<int, State> states;
-State start_state;
-//                  p                       x                 q 
+bool accept_states[1001];
+int start_state;
 std::unordered_map<int, std::unordered_map<char, std::vector<int>>> transitions;
+//                  p                       x                 q 
 // e.g., transitions[4]['a'] => {6, 7, 8, ...}
-
-void initialize_states() {
-    for(int i = 0; i < 1002; i++) {
-        states[i].num = i;
-    }
-}
 
 // for office use only
 void print_states(int index) {
-    std::cout << "Start state is " << start_state.num << std::endl;
+    std::cout << "Start state is " << start_state << std::endl;
     for(int i = 0; i <= index; i++) {
-        std::cout << "State " << states[i].num << " is " << ((states[i].is_accept) ? "" : "not ") << "an accept state" << std::endl;
+        std::cout << "State " << i << " is " << (accept_states[i] ? "" : "not ") << "an accept state" << std::endl;
     }
 }
 
@@ -57,6 +37,9 @@ void print_transitions() {
     }
 }
 
+/**
+ * Reads states and transitions from stdin
+ */
 void parse(char* filename) {
     std::ifstream file(filename);
     std::string line;
@@ -69,32 +52,36 @@ void parse(char* filename) {
             tokens.push_back(token);
         // update state in array of states with this information
         if(tokens.at(0).compare("state") == 0) { // state input
-            if(tokens.size() > 3) {
+            if(tokens.size() > 3) { // if there is a "state accept" separated by a tab
               if((tokens.at(2).find("accept") != std::string::npos) || (tokens.at(3).find("accept") != std::string::npos)) {
-                states[std::stoi(tokens.at(1))].is_accept = true;
+                accept_states[std::stoi(tokens.at(1))] = true;
             }
             if((tokens.at(2).find("start") != std::string::npos) || (tokens.at(3).find("start") != std::string::npos)) {
-                start_state = states[std::stoi(tokens.at(1))];
+                start_state = std::stoi(tokens.at(1));
             }  
             }
-            else {
+            else { // if there is only "accept", "start", or "acceptstart"
+                   // note that .find() allows it to work in any case
                 if(tokens.at(2).find("accept") != std::string::npos) {
-                    states[std::stoi(tokens.at(1))].is_accept = true;
+                    accept_states[std::stoi(tokens.at(1))] = true;
                 }
                 if(tokens.at(2).find("start") != std::string::npos) {
-                    start_state = states[std::stoi(tokens.at(1))];
+                    start_state = std::stoi(tokens.at(1));
                 }
             }
             
         }
         if(tokens.at(0).compare("transition") == 0) { // transition input
-            // ! NOTE: tokens.at(2).at(0) may only work if there is a char there to begin with
+            //! NOTE: tokens.at(2).at(0) may only work if there is a char there to begin with
             transitions[std::stoi(tokens.at(1))][tokens.at(2).at(0)].push_back(std::stoi(tokens.at(3)));
         }
         tokens.clear();
     }
 }
 
+/**
+ * Helper function to remove duplicate states from list of states after each transition
+ */
 void condense(std::vector<int>& vec) {
     std::unordered_set<int> seen;
     std::vector<int> result;
@@ -108,6 +95,10 @@ void condense(std::vector<int>& vec) {
     vec = std::move(result); // Replace the original vector with the condensed one
 }
 
+/**
+ * Adds each accessible state given an input character for the
+ * list of currently available states 
+ */
 std::vector<int> transition(std::vector<int> current_states, char symbol) {
     std::vector<int> next_states;
 
@@ -121,23 +112,24 @@ std::vector<int> transition(std::vector<int> current_states, char symbol) {
             if (symbolIt != stateIt->second.end()) {
                 const std::vector<int>& nextStates = symbolIt->second;
                 for (int s : nextStates) {
-                    // std::cout << s << " "; // TODO: add to a new vector here instead
-                    next_states.push_back(s);
+                    next_states.push_back(s); // add reachable states to vector
                 }
-                // std::cout << std::endl; 
             }
             // else doNothing()
         }
     }
-
     return next_states;
 }
 
+/**
+ * Wrapper function that calculates all transitions for a 
+ * given input string beginning at the start state
+ */
 std::vector<int> begin_automata(char* input) {
     int size_of_input = std::strlen(input);
 
     std::vector<int> accessible_states;
-    accessible_states.push_back(start_state.num);
+    accessible_states.push_back(start_state);
 
     for(int i = 0; i < size_of_input; i++) {
         accessible_states = transition(accessible_states, input[i]);
@@ -147,25 +139,25 @@ std::vector<int> begin_automata(char* input) {
     return accessible_states;
 }
 
+// Driver
 int main(int argc, char *argv[]) {
     if(argc < 3) {
         std::cout << "Please provide the required command line input." << std::endl;
         return 1;
     }
 
-    initialize_states();
     parse(argv[1]);
-
-    
 
     print_states(7);
     print_transitions();
 
     std::vector<int> accessible_states = begin_automata(argv[2]);
+    // TODO: delete
     for(int state : accessible_states) {
         std::cout << state << std::endl; 
     }
     // TODO: Calculate accept or reject states
+
 
     return 0;
 }
