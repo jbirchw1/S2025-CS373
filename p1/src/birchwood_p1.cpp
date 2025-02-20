@@ -1,12 +1,11 @@
 #include <iostream>
-#include <iostream>
-#include <vector>
 #include <fstream>
-#include <iterator>
 #include <sstream>
+#include <iterator>
+#include <cstring>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <cstring>
 
 bool accept_states[1001];
 int start_state;
@@ -115,7 +114,9 @@ std::vector<int> begin_automata(char* input) {
 
     return accessible_states;
 }
-
+/**
+ * Prints required output and list of states
+ */
 void print_end_status(std::vector<int> end_states) {
     bool accept = false;
     for(int state : end_states) {
@@ -123,19 +124,21 @@ void print_end_status(std::vector<int> end_states) {
             accept = true;
         }
     }
-    if(accept) {
+
+    if(accept) { // print all accept states
         std::cout << "accept ";
         for(int state : end_states) {
             if(accept_states[state]) {
                 std::cout << state << " ";
             }
         }
-    } else {
+    } else { // print all accessible states
         std::cout << "reject ";
         for(int state : end_states) {
             std::cout << state << " ";
         }
     }
+    
     std::cout << std::endl;
 }
 
