@@ -20,13 +20,14 @@ public class birchwood_p2 {
 
 			// configure the lower gates from input 
 			for (int i = 0; i < 3; i++) {
-				if (states.charAt(0) == 'L') {
+				if (states.charAt(i+1) == 'L') {
 					xLower[i] = false;
 				}
 				else {
 					xLower[i] = true;
 				}
 			}
+			System.out.print("configured to "); printConfiguration(); System.out.println();
 		}
 
 		void printConfiguration() {
